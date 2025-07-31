@@ -1,8 +1,12 @@
 import { generateContentWithAi } from '@/lib/ai/ai-generator';
-import { buildPrompt } from '@/lib/prompts/generate-dm';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { buildPrompt } from '@/lib/prompts/generate-dm'; // Assuming this is your prompt builder
+import { createServerSupabaseClient } from '@/lib/supabase/server'; // Or createClient if using App Router directly
 import { NextResponse } from 'next/server';
 
+// Note: For App Router, you typically import createClient from '@supabase/supabase-js'
+// and initialize it within the route handler, or use a helper that does it.
+// createServerSupabaseClient is common for Pages Router.
+// I'm keeping createServerSupabaseClient as per your provided code, assuming your setup handles it.
 const supabase = createServerSupabaseClient();
 
 export async function POST(request) {
@@ -20,9 +24,9 @@ export async function POST(request) {
     }
 
     // Get user ID for usage tracking and profile updates
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (!user) {
+    if (userError || !user) {
       return NextResponse.json(
         { message: 'Authentication required.' },
         { status: 401 }
@@ -79,11 +83,34 @@ export async function POST(request) {
         return { number: messageNumber, content: content };
       });
 
-    // 5. Update User Usage (if free plan)
+    // --- AICI ESTE LINIA DE SALVARE ÎN `generated_messages` ---
+    // 5. Save the generated messages and input data to the 'generated_messages' table
+    const { data: insertedMessageData, error: insertError } = await supabase
+      .from('generated_messages')
+      .insert({
+        user_id: user.id,
+        input_data: { recipient, goal, product, channel, tone, userContext }, // Store the original form data as JSONB
+        output_messages: messages, // Store the parsed array of generated messages as JSONB
+        channel: channel,
+        tone: tone,
+        feedback_rating: null, // Initially, no feedback has been provided
+      })
+      .select('id'); // Important: select the ID to return it to the frontend
+
+    if (insertError || !insertedMessageData || insertedMessageData.length === 0) {
+      console.error('Error saving generated message to DB:', insertError?.message || 'No data returned on insert.');
+      // Don't block the user, but log the error.
+    }
+
+    const generatedMessageId = insertedMessageData ? insertedMessageData[0].id : null;
+
+    // 6. Update User Usage (if free plan)
+    let updatedMessagesUsed = profile.messages_used_this_month;
     if (profile.current_plan === 'free') {
+      updatedMessagesUsed = profile.messages_used_this_month + 1;
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ messages_used_this_month: profile.messages_used_this_month + 1 })
+        .update({ messages_used_this_month: updatedMessagesUsed })
         .eq('id', user.id);
 
       if (updateError) {
@@ -92,12 +119,13 @@ export async function POST(request) {
       }
     }
 
-    // 6. Return the Generated Messages to the Frontend
+    // 7. Return the Generated Messages to the Frontend
     return NextResponse.json({
       success: true,
       messages: messages,
-      currentUsage: profile.messages_used_this_month + 1,
-      limit: profile.messages_limit_per_month
+      currentUsage: updatedMessagesUsed,
+      limit: profile.messages_limit_per_month,
+      generatedMessageId: generatedMessageId // Return the ID of the newly saved message batch
     });
 
   } catch (error) {
@@ -111,4 +139,4 @@ export async function POST(request) {
       { status: 500 }
     );
   }
-} 
+}

@@ -1,7 +1,8 @@
-'use client';
+"use client";
 import { Menu, Bell, Settings, User } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const Topbar = ({ setSidebarOpen }) => {
   return (
@@ -17,9 +18,7 @@ const Topbar = ({ setSidebarOpen }) => {
           >
             <Menu className="w-5 h-5 text-gray-600" />
           </Button>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-[#00C6FF] to-[#AA64FF] bg-clip-text text-transparent">
-            ColdDM.AI
-          </h1>
+          <div className="text-xl font-semibold text-gray-900">ColdDM.AI</div>
         </div>
 
         {/* Right side - Actions */}
@@ -27,9 +26,16 @@ const Topbar = ({ setSidebarOpen }) => {
           {/* <Button variant="ghost" size="icon" className="hover:bg-gray-50">
             <Bell className="w-5 h-5 text-gray-600" />
           </Button> */}
-          <Button variant="ghost" size="icon" className="hover:bg-gray-50">
-            <User className="w-5 h-5 text-gray-600" />
-          </Button>
+          <Link href="/dashboard/account">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="hover:bg-gray-50"
+            >
+              <User className="w-5 h-5 text-gray-600" />
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   User,
+  Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react"; // Import useEffect
@@ -181,7 +182,7 @@ export const Sidebar = ({
           } transition-colors`}
           onClick={() => setSidebarOpen(false)}
         >
-          <IconTemplate className="w-5 h-5" />
+          <Bookmark className="w-5 h-5" />
           <span>Templates</span>
         </Link>
 

@@ -44,7 +44,7 @@ const Dashboard = () => {
                     .select('output_messages, channel, created_at')
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: false })
-                    .limit(2); // Get only the 2 most recent messages
+                    .limit(4); // Get only the 2 most recent messages
 
                 if (messages && !messagesError) {
                     // Flatten the output_messages array to show individual messages if needed,
