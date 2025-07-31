@@ -17,9 +17,9 @@ const Topbar = ({ setSidebarOpen }) => {
           >
             <Menu className="w-5 h-5 text-gray-600" />
           </Button>
-          <h2 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-[#00C6FF] to-[#AA64FF] bg-clip-text text-transparent">
             ColdDM.AI
-          </h2>
+          </h1>
         </div>
 
         {/* Right side - Actions */}

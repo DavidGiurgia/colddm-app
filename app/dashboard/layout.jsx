@@ -24,7 +24,7 @@ const DashboardLayout = ({ children }) => {
       <div className="lg:ml-64">
         <Topbar setSidebarOpen={setSidebarOpen} />
         
-        <main className="p-6">
+        <main className="">
           {children}
         </main>
       </div>

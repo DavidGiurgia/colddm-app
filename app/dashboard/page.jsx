@@ -1,129 +1,133 @@
-import { MessageCircle, Zap, Users, ArrowRight, LineChart, Mail, MessageSquare } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { MessageSquare, Sparkles, ArrowRight, User as UserIcon } from 'lucide-react'; // Simplified Lucide icons
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase/client';
+import Link from 'next/link';
 
 const Dashboard = () => {
-  // Mock data - replace with real data from your API
-  const stats = [
-    { title: "Total Messages", value: "142", change: "+12%", icon: <MessageCircle className="w-6 h-6 text-red-500" /> },
-    { title: "Reply Rate", value: "68%", change: "+8%", icon: <Mail className="w-6 h-6 text-purple-500" /> },
-    { title: "New Contacts", value: "23", change: "+5", icon: <Users className="w-6 h-6 text-blue-500" /> },
-    { title: "Avg. Response Time", value: "2.4h", change: "-0.8h", icon: <Zap className="w-6 h-6 text-green-500" /> },
-  ];
+    // State for user data (for welcome message)
+    const [userProfile, setUserProfile] = useState({
+        firstName: "Founder", // Default placeholder
+    });
 
-  const recentMessages = [
-    { name: "Sarah Johnson", platform: "LinkedIn", status: "Replied", time: "2h ago" },
-    { name: "Mike Rodriguez", platform: "Email", status: "Opened", time: "5h ago" },
-    { name: "Alex Chen", platform: "Twitter", status: "Pending", time: "1d ago" },
-  ];
+    // State for recent messages
+    const [recentMessages, setRecentMessages] = useState([]);
+    const [isLoadingRecent, setIsLoadingRecent] = useState(true);
+    const [recentError, setRecentError] = useState(null);
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's your outreach performance</p>
-        </div>
-        <Button className="bg-gradient-to-r from-red-500 to-purple-600 text-white hover:from-red-600 hover:to-purple-700">
-          New Message <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+    // Fetch user profile and recent messages on component mount
+    useEffect(() => {
+        const fetchData = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                // Fetch user profile
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('first_name')
+                    .eq('id', user.id)
+                    .single();
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                {stat.title}
-              </CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-gray-500 mt-1">
-                <span className={stat.change.startsWith('+') ? 'text-green-500' : 'text-red-500'}>
-                  {stat.change}
-                </span> vs last week
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                if (profile && !profileError) {
+                    setUserProfile({
+                        firstName: profile.first_name || "Founder",
+                    });
+                } else {
+                    console.error("Error fetching user profile for dashboard:", profileError?.message);
+                }
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Messages */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-gray-700" />
-              Recent Messages
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentMessages.map((message, index) => (
-                <div key={index} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">{message.name}</p>
-                    <p className="text-sm text-gray-500">{message.platform}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      message.status === 'Replied' ? 'bg-green-100 text-green-800' :
-                      message.status === 'Opened' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {message.status}
-                    </span>
-                    <p className="text-xs text-gray-500 mt-1">{message.time}</p>
-                  </div>
+                // Fetch recent messages
+                const { data: messages, error: messagesError } = await supabase
+                    .from('generated_messages')
+                    .select('output_messages, channel, created_at')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(2); // Get only the 2 most recent messages
+
+                if (messages && !messagesError) {
+                    // Flatten the output_messages array to show individual messages if needed,
+                    // or just show the first variant of the latest generation.
+                    // For a "relaxed" view, let's just show the first message from the latest two generations.
+                    const formattedRecent = messages.map(gen => ({
+                        content: gen.output_messages[0]?.content || 'No content available', // Take the first variant
+                        channel: gen.channel,
+                        time: new Date(gen.created_at).toLocaleString(), // Format time nicely
+                        id: gen.id // Keep ID if needed for future linking
+                    }));
+                    setRecentMessages(formattedRecent);
+                } else {
+                    console.error("Error fetching recent messages:", messagesError?.message);
+                    setRecentError("Failed to load recent messages.");
+                }
+            } else {
+                // Handle case where user is not logged in - maybe redirect or show login prompt
+                // For now, just set empty profile and messages
+                setUserProfile({ firstName: "Guest" });
+                setRecentError("Please log in to see your messages.");
+            }
+            setIsLoadingRecent(false);
+        };
+        fetchData();
+    }, []);
+
+    return (
+        <div className="min-h-screen bg-white font-inter text-gray-900 antialiased p-6 md:p-8 lg:p-10"> {/* Changed bg-gray-50 to bg-white and added font-inter */}
+            {/* Header - Welcoming and clean */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-12">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Welcome back!</h1>
+                    <p className="text-lg text-gray-600 mt-1">Ready to craft your next message that gets replies?</p>
                 </div>
-              ))}
+                <Link href="/generate" passHref>
+                    <Button className="mt-6 sm:mt-0 bg-gray-900 text-white hover:bg-gray-800 text-lg px-8 py-4 rounded-full transition-all duration-200 transform hover:scale-105 shadow-md"> {/* Updated button style to match landing page primary CTA */}
+                        New Message <Sparkles className="ml-2 h-5 w-5" />
+                    </Button>
+                </Link>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <Users className="w-4 h-4" />
-              Import Contacts
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <LineChart className="w-4 h-4" />
-              View Analytics
-            </Button>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <MessageCircle className="w-4 h-4" />
-              Message Templates
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+            {/* Recent Messages - Simplified and Clean */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10"> {/* Adjusted grid for 2 recent messages */}
+                <Card className="lg:col-span-2 rounded-xl shadow-sm border border-gray-100">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl font-bold text-gray-900">
+                            <MessageSquare className="w-5 h-5 text-gray-700" />
+                            Your Latest Messages
+                        </CardTitle>
+                        <CardDescription className="text-gray-600">A quick look at your most recent AI-generated messages.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {isLoadingRecent ? (
+                            <div className="text-center py-8 text-gray-500">Loading your messages...</div>
+                        ) : recentError ? (
+                            <div className="text-center py-8 text-red-500">{recentError}</div>
+                        ) : recentMessages.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                                You haven't generated any messages yet. Click "New Message" to start!
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {recentMessages.map((message, index) => (
+                                    <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                        <p className="text-sm font-medium text-gray-600 mb-2">{message.channel} - {message.time}</p>
+                                        <p className="text-gray-800 line-clamp-3">{message.content}</p> {/* Clamp to 3 lines */}
+                                        {/* Optionally add a "View Full Message" button */}
+                                        <Link href={`/dashboard/messages/${message.id}`} passHref>
+                                            <Button variant="link" className="px-0 py-0 h-auto text-gray-700 hover:text-gray-900 mt-2"> {/* Updated link color */}
+                                                View Full Message
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
 
-      {/* Performance Chart (Placeholder) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LineChart className="w-5 h-5 text-gray-700" />
-            Reply Rate Over Time
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400">
-            Performance chart will appear here
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default Dashboard;

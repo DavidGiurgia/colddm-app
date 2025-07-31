@@ -108,10 +108,16 @@ export default function App() {
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
-            <Button className="bg-gray-900 text-white hover:bg-gray-800 text-lg px-8 py-4 rounded-full transition-all duration-200 transform hover:scale-105">
-              Generate Your First Message
-              <ArrowRight className="ml-2 h-5 w-5" />
+            <Button
+              asChild
+              className="bg-gray-900 text-white hover:bg-gray-800 text-lg px-8 py-4 rounded-full transition-all duration-200 transform hover:scale-105"
+            >
+              <Link href="/generate">
+                Generate Your First Message
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
+
             <div className="flex items-center text-gray-500 text-sm">
               <span>Free • 30 seconds</span>
             </div>
@@ -188,7 +194,7 @@ export default function App() {
               <p className="text-lg text-gray-700 mt-8">
                 <strong className="text-gray-900">Sound familiar?</strong>{" "}
                 You're not alone. Based on industry research,{" "}
-                <strong>89% of founders struggle</strong> with cold outreach. 
+                <strong>89% of founders struggle</strong> with cold outreach.
               </p>
             </div>
 
@@ -364,7 +370,7 @@ export default function App() {
                 3. Get replies that matter
               </h3>
               <p className="text-gray-600">
-                Copy, send, and watch your reply rates soar. 
+                Copy, send, and watch your reply rates soar.
                 {/* Our users average
                 73% responses. */}
               </p>
@@ -538,8 +544,11 @@ export default function App() {
                   </div>
                 </div>
 
-                <Button className="w-full border-2 border-gray-300 text-gray-100 hover:text-gray-700 hover:bg-gray-50 py-3">
-                  Start Free
+                <Button
+                  asChild
+                  className="w-full border-2 border-gray-300 text-gray-100 hover:text-gray-700 hover:bg-gray-50 py-3"
+                >
+                  <Link href="/register">Start Free</Link>
                 </Button>
               </div>
             </Card>
@@ -587,16 +596,16 @@ export default function App() {
                   </div>
                 </div>
 
-                <Button className="w-full bg-white text-gray-900 hover:bg-gray-100 py-3 font-semibold">
-                  Upgrade to Pro
+                <Button asChild className="w-full bg-white text-gray-900 hover:bg-gray-100 py-3 font-semibold">
+                  <Link href="/pricing/interested">
+                    Upgrade to Pro
+                  </Link>
                 </Button>
               </div>
             </Card>
           </div>
 
-          <p className="text-gray-500 mt-8">
-             Cancel anytime • No hidden fees
-          </p>
+          <p className="text-gray-500 mt-8">Cancel anytime • No hidden fees</p>
         </div>
       </section>
 
