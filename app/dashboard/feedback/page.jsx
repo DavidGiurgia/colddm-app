@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Send, Loader2, CheckCircle2, Lightbulb, Mail } from 'lucide-react';
+import { Send, Loader2, CheckCircle2, Lightbulb, Mail, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client'; // Assuming this correctly points to your Supabase client
 import { toast } from 'sonner'; // For displaying notifications
@@ -106,7 +106,7 @@ export default function GiveFeedbackPage() {
                                     className="mt-6 bg-gray-900 text-white hover:bg-gray-800 text-lg px-8 py-4 rounded-full transition-all duration-200 transform hover:scale-105 shadow-md" // Updated button style to match landing page primary CTA
                                     onClick={() => router.push('/dashboard')}
                                 >
-                                    Back to Dashboard <ArrowRight className="ml-2 h-5 w-5" />
+                                    Back to Dashboard 
                                 </Button>
                             </div>
                         ) : (

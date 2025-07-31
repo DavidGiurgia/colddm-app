@@ -99,19 +99,22 @@ export default function GeneratePage() {
         setMessagesLimit(5);
       }
 
-      const { data: fetchedTemplates, error: fetchTemplatesError } = await supabase
+      const { data: fetchedTemplates, error: fetchTemplatesError } =
+        await supabase
           .from("saved_templates")
           .select("content")
           .eq("user_id", user.id);
 
-        if (fetchTemplatesError) {
-          console.error("Error fetching saved templates:", fetchTemplatesError);
-          // Don't throw error here, just log, as messages can still be displayed
-        } else {
-          // Create a Set of saved message contents for quick lookup
-          const contents = new Set(fetchedTemplates.map(template => template.content));
-          setSavedTemplateContents(contents);
-        }
+      if (fetchTemplatesError) {
+        console.error("Error fetching saved templates:", fetchTemplatesError);
+        // Don't throw error here, just log, as messages can still be displayed
+      } else {
+        // Create a Set of saved message contents for quick lookup
+        const contents = new Set(
+          fetchedTemplates.map((template) => template.content)
+        );
+        setSavedTemplateContents(contents);
+      }
     };
 
     fetchUsage();
@@ -426,8 +429,7 @@ export default function GeneratePage() {
                   htmlFor="tone"
                   className="flex items-center text-gray-700"
                 >
-                  <Music2 className="h-5 w-5 mr-2 text-gray-700" />{" "}
-                  Message tone
+                  <Music2 className="h-5 w-5 mr-2 text-gray-700" /> Message tone
                 </Label>
                 <Select
                   value={formData.tone}
@@ -516,31 +518,31 @@ export default function GeneratePage() {
                       <p className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-4">
                         {msg.content}
                       </p>
-                      <div className="flex justify-end">
+                      <div className="flex justify-end space-x-2">
                         <CopyButton
                           textToCopy={msg.content}
                           label="Message"
-                          size="md"
+                          size="sm"
                         />
-                        {!savedTemplateContents.has(msg.content) && (<Button
-                              size="sm"
-                              variant="outline"
-                              className="rounded-full border-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:border-gray-300 text-gray-700 transition-colors"
-                              onClick={() =>
-                                openSaveModal(msg.content)
-                              }
-                              // Disable button if this specific message content is already saved
-                              disabled={savedTemplateContents.has(msg.content)}
-                            >
-                              <Bookmark className="h-4 w-4 mr-2" />
-                              Save
-                            </Button>)}
+                        {!savedTemplateContents.has(msg.content) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="rounded-full border-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:border-gray-300 text-gray-700 transition-colors"
+                            onClick={() => openSaveModal(msg.content)}
+                            // Disable button if this specific message content is already saved
+                            disabled={savedTemplateContents.has(msg.content)}
+                          >
+                            <Bookmark className="h-4 w-4 mr-2" />
+                            Save
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
                 ))}
 
-                <div className="flex flex-row space-x-2">
+                <div className="flex justify-end w-fit space-x-2">
                   <Button
                     variant="outline"
                     className="flex-1 rounded-full border-gray-200 transition-colors py-2 px-4 hover:bg-green-50 hover:border-green-400 text-gray-700 hover:text-green-700" // Updated button style
@@ -554,14 +556,6 @@ export default function GeneratePage() {
                     onClick={() => handleFeedback("negative")}
                   >
                     <ThumbsDown className="h-4 w-4 mr-2" /> Not Useful
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="flex-1 rounded-full border-gray-300 hover:bg-purple-50 hover:border-purple-400 text-purple-700 transition-colors"
-                    onClick={() => openSaveModal()} // Open modal to save this specific message
-                  >
-                    <Bookmark className="h-4 w-4 mr-2" /> Save as Template
                   </Button>
                 </div>
               </div>
